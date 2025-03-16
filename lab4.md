@@ -1,9 +1,9 @@
 
 # Lab 4: GoDB Transactions
 
-**Assigned:**  Tuesday November 5, 2024
+**Assigned:**  Thursday March 20, 2025
 
-**Due:**  Tuesday November 19, 2024 by 11:59 PM
+**Due:**  Tuesday April 1, 2025 by 11:59 PM
 
 In this lab, you will implement a simple locking-based transaction system in GoDB. You will need to add lock and unlock calls at the appropriate places in your code, as well as code to track the locks held by each transaction and grant locks to transactions as they are needed.
 
@@ -25,10 +25,10 @@ To start Lab 4, there are two methods:
 
 2. Inside this directory, clone the repository by running the following command:
    ```
-   git clone https://github.com/UA-DB-Class/go-db-lab-2024-fall.git
+   git clone https://github.com/UA-DB-Class/go-db-lab-2025-spring.git
    ```
 
-   The `godb` folder contains all the files you need for lab 4, including both the solution to lab 1, lab 2 and lab3.
+   The `godb` folder contains all the files you need for lab 4, including both the solution to lab1 and lab 2.
 
 3. Navigate to the `godb` directory in your terminal and run the following command to ensure everything compiles correctly.
 
@@ -45,10 +45,10 @@ To start Lab 4, there are two methods:
 2. Inside this directory, clone the repository by running the following command:
 
    ```
-   git clone https://github.com/UA-DB-Class/go-db-lab-2024-fall.git
+   git clone https://github.com/UA-DB-Class/go-db-lab-2025-spring.git
    ```
 
-   The `godb` folder contains all the files you need for lab 4, including both the solution to lab 1, lab 2 and lab3.
+   The `godb` folder contains all the files you need for lab 4, including both the solution to lab 1 and lab 2.
 
 3. Now, move the following files from your Lab 2 work into the `godb` folder you just cloned, to replace the previous same files under this folder. (These files contain all the code written by yourself; and the buffer_pool.go file for lab 1/2 is very different from the buffer_pool.go file for lab 4, so please use the version provided by lab 4)
 
@@ -281,7 +281,7 @@ $ zip -r submission.zip godb/ lab4-writeup-username1.txt lab4-writeup-username2.
 ### 3.3. Submitting a bug
 
 Please submit (friendly!) bug reports to
-[xinyuguo@arizona.edu](mailto:xinyuguo@arizona.edu). When you do, please try to
+[caolei@arizona.edu](mailto:caolei@arizona.edu). When you do, please try to
 include:
 
 * A description of the bug.
