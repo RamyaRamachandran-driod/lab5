@@ -265,7 +265,7 @@ This lab should be manageable for a single person, but if you prefer to work wit
 
 ### 3.2. Submitting your assignment
 
-We will be using Gradescope to autograde all programming assignments. You should have all been invited to the class instance. If you are still having trouble, let us know, and we can help you set up. You may submit your code multiple times before the deadline; we will use the latest version as determined by Gradescope. Place the write-up in a file called `lab3-writeup.txt` with your submission.
+We will be using Gradescope to autograde all programming assignments. You should have all been invited to the class instance. If you are still having trouble, let us know, and we can help you set up. You may submit your code multiple times before the deadline; we will use the latest version as determined by Gradescope. Place the write-up in a file called `lab4-writeup.txt` with your submission.
 
 If you are working with a partner, only one person needs to submit to Gradescope. However, make sure to add the other person to your group. Also, note that each member must have their own writeup.
 
