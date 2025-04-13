@@ -24,12 +24,12 @@ func NewJoin(left Operator, leftField Expr, right Operator, rightField Expr, max
 //
 // HINT: use [TupleDesc.merge].
 func (hj *EqualityJoin) Descriptor() *TupleDesc {
-	// TODO: some code goes here
+	//<strip lab1|lab2>
 	return (*hj.left).Descriptor().merge((*hj.right).Descriptor())
-
-	// return nil
+	//</strip>
 }
 
+// <silentstrip lab1|lab2|lab3|lab4>
 func (joinOp *EqualityJoin) loadOuterBatch(n int, iter func() (*Tuple, error)) (map[DBValue]([]*Tuple), bool, error) {
 	hashmap := make(map[DBValue]([]*Tuple))
 	for {
@@ -54,6 +54,7 @@ func (joinOp *EqualityJoin) loadOuterBatch(n int, iter func() (*Tuple, error)) (
 	}
 }
 
+//</silentstrip>
 // Join operator implementation. This function should iterate over the results
 // of the join. The join should be the result of joining joinOp.left and
 // joinOp.right, applying the joinOp.leftField and joinOp.rightField expressions
@@ -72,7 +73,7 @@ func (joinOp *EqualityJoin) loadOuterBatch(n int, iter func() (*Tuple, error)) (
 // out. To pass this test, you will need to use something other than a nested
 // loops join.
 func (joinOp *EqualityJoin) Iterator(tid TransactionID) (func() (*Tuple, error), error) {
-	// TODO: some code goes here
+	//<strip lab1|lab2|lab3|lab4>
 
 	//build map on the left
 	var hashmap map[DBValue]([]*Tuple)
@@ -132,5 +133,5 @@ func (joinOp *EqualityJoin) Iterator(tid TransactionID) (func() (*Tuple, error),
 			}
 		}
 	}, err
-	// return nil, fmt.Errorf("join_op.Iterator not implemented")
+	//</strip>
 }

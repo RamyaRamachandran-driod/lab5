@@ -6,16 +6,64 @@ type WaitFor map[TransactionID][]TransactionID
 
 // Extend the graph so that [tid] waits for each of [tids].
 func (w WaitFor) AddEdges(tid TransactionID, tids []TransactionID) {
-	// TODO: some code goes here
+	//<strip lab4>
+	edges := w[tid]
+	for _, t := range tids {
+		found := false
+		for _, e := range edges {
+			if e == t {
+				found = true
+				break
+			}
+		}
+		if !found {
+			edges = append(edges, t)
+		}
+	}
+	w[tid] = edges
+	//</strip>
 }
 
 // Remove the transaction [tid] from the graph. After this method runs, the
 // graph will not contain any references to [tid].
 func (w WaitFor) RemoveTransaction(tid TransactionID) {
-	// TODO: some code goes here
+	//<strip lab4>
+	delete(w, tid)
+	for t := range w {
+		var newWaitTid []TransactionID
+		for _, tt := range w[t] {
+			if tt != tid {
+				newWaitTid = append(newWaitTid, tt)
+			}
+		}
+		w[t] = newWaitTid
+	}
+	//</strip>
 }
 
+// <silentstrip lab4>
+func (w WaitFor) breakCycle(start TransactionID, root TransactionID, seen map[TransactionID]bool) *TransactionID {
+	for _, n := range w[start] {
+		if n == root { // found cycle
+			return &n
+		}
+		if _, exists := seen[n]; !exists {
+			seen[n] = true
+			deadlockTID := w.breakCycle(n, root, seen)
+			if deadlockTID != nil {
+				return deadlockTID
+			}
+		}
+	}
+	return nil
+}
+
+//</silentstrip>
 // Returns true if [start] is part of a cycle and false otherwise.
 func (w WaitFor) DetectDeadlock(start TransactionID) bool {
-	return false // TODO implement me
+	//<silentstrip lab4>
+	seenSet := make(map[TransactionID]bool)
+	seenSet[start] = true
+	return w.breakCycle(start, start, seenSet) != nil
+	//</silentstrip>
 }

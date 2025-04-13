@@ -3,27 +3,25 @@ package godb
 import "fmt"
 
 type InsertOp struct {
-	// TODO: some code goes here
-
+	//<strip lab1|lab2>
 	child      Operator
 	insertFile DBFile
+	//</strip>
 }
 
 // Construct an insert operator that inserts the records in the child Operator
 // into the specified DBFile.
 func NewInsertOp(insertFile DBFile, child Operator) *InsertOp {
-	// TODO: some code goes here
+	//<strip lab1|lab2>
 	return &InsertOp{child, insertFile}
-
-	// return nil
+	//</strip>
 }
 
 // The insert TupleDesc is a one column descriptor with an integer field named "count"
 func (i *InsertOp) Descriptor() *TupleDesc {
-	// TODO: some code goes here
+	//<strip lab1|lab2>
 	return &TupleDesc{[]FieldType{{"count", "", IntType}}}
-
-	// return nil
+	//</strip>
 }
 
 // Return an iterator function that inserts all of the tuples from the child
@@ -32,7 +30,7 @@ func (i *InsertOp) Descriptor() *TupleDesc {
 // were inserted.  Tuples should be inserted using the [DBFile.insertTuple]
 // method.
 func (iop *InsertOp) Iterator(tid TransactionID) (func() (*Tuple, error), error) {
-	// TODO: some code goes here
+	//<strip lab1|lab2>
 	iter, err := iop.child.Iterator(tid)
 	if err != nil {
 		return nil, err
@@ -69,5 +67,5 @@ func (iop *InsertOp) Iterator(tid TransactionID) (func() (*Tuple, error), error)
 		didIterate = true
 		return &Tuple{*iop.Descriptor(), []DBValue{IntField{int64(cnt)}}, nil}, nil
 	}, nil
-	// return nil, fmt.Errorf("insert_op.Iterator not implemented")
+	//</strip>
 }

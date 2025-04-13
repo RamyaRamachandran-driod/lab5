@@ -2,7 +2,9 @@ package godb
 
 import (
 	"bufio"
+	//<silentstrip lab1>
 	"bytes"
+	//</silentstrip>
 	"fmt"
 	"os"
 	"strconv"
@@ -15,21 +17,25 @@ import (
 // HeapFile is a public class because external callers may wish to instantiate
 // database tables using the method [LoadFromCSV]
 type HeapFile struct {
+	//<strip lab1>
 	td            *TupleDesc
 	numPages      int
 	backingFile   string
 	lastEmptyPage int
+	//</strip>
 	// HeapFile should include the fields below;  you may want to add
 	// additional fields
 	bufPool *BufferPool
 	sync.Mutex
 }
 
+// <silentstrip lab1>
 type heapFileRid struct {
 	pageNo int
 	slotNo int
 }
 
+//</silentstrip>
 // Create a HeapFile.
 // Parameters
 // - fromFile: backing file for the HeapFile.  May be empty or a previously created heap file.
@@ -37,9 +43,8 @@ type heapFileRid struct {
 // - bp: the BufferPool that is used to store pages read from the HeapFile
 // May return an error if the file cannot be opened or created.
 func NewHeapFile(fromFile string, td *TupleDesc, bp *BufferPool) (*HeapFile, error) {
-
+	//<strip lab1>
 	f, err := os.OpenFile(fromFile, os.O_CREATE|os.O_WRONLY, 0644)
-	// f, err := os.Open(fromFile)
 	if err != nil {
 		return nil, err
 	}
@@ -50,21 +55,23 @@ func NewHeapFile(fromFile string, td *TupleDesc, bp *BufferPool) (*HeapFile, err
 	}
 	numPages := fi.Size() / int64(PageSize)
 	return &HeapFile{td, int(numPages), fromFile, -1, bp, sync.Mutex{}}, nil
-
+	//</strip>
 }
 
 // Return the name of the backing file
 func (f *HeapFile) BackingFile() string {
-
+	//<strip lab1>
 	return f.backingFile
-
+	//</strip>
 }
 
 // Return the number of pages in the heap file
 func (f *HeapFile) NumPages() int {
-	// TODO: some code goes here: Lock and Unlock
+	//<strip lab1>
+	f.Lock()
+	defer f.Unlock()
 	return f.numPages
-
+	//</strip>
 }
 
 // Load the contents of a heap file from a specified CSV file.  Parameters are as follows:
@@ -75,78 +82,59 @@ func (f *HeapFile) NumPages() int {
 // We provide the implementation of this method, but it won't work until
 // [HeapFile.insertTuple] is implemented
 func (f *HeapFile) LoadFromCSV(file *os.File, hasHeader bool, sep string, skipLastField bool) error {
-	// 使用 bufio.Scanner 逐行读取文件内容
 	scanner := bufio.NewScanner(file)
-	cnt := 0 // 行计数器，用于跟踪当前处理到的行号
+	cnt := 0
 	for scanner.Scan() {
-		line := scanner.Text() // 获取当前行文本
-		// 将行内容按指定的分隔符 sep 分割成字段数组
+		line := scanner.Text()
 		fields := strings.Split(line, sep)
 		if skipLastField {
-			// 如果 skipLastField 为 true，跳过最后一个字段
 			fields = fields[0 : len(fields)-1]
 		}
-		numFields := len(fields) // 获取当前行的字段数
-		cnt++                    // 行数增加
-
-		// 获取文件的描述符，包含字段类型等元信息
+		numFields := len(fields)
+		cnt++
 		desc := f.Descriptor()
 		if desc == nil || desc.Fields == nil {
-			// 如果描述符为 nil，说明数据格式不正确，返回错误
 			return GoDBError{MalformedDataError, "Descriptor was nil"}
 		}
-		// 检查当前行的字段数是否与描述符中的字段数匹配
 		if numFields != len(desc.Fields) {
 			return GoDBError{MalformedDataError, fmt.Sprintf("LoadFromCSV:  line %d (%s) does not have expected number of fields (expected %d, got %d)", cnt, line, len(f.Descriptor().Fields), numFields)}
 		}
-		// 如果第一行是标题行并且 hasHeader 为 true，跳过该行
 		if cnt == 1 && hasHeader {
 			continue
 		}
-
-		var newFields []DBValue // 用于存储处理后的字段值
-		// 遍历当前行的每个字段，并根据字段类型进行处理
+		var newFields []DBValue
 		for fno, field := range fields {
 			switch f.Descriptor().Fields[fno].Ftype {
 			case IntType:
-				// 对于整数类型字段，先移除空白字符
 				field = strings.TrimSpace(field)
-				// 将字段转换为浮点数，然后再转换为整数
 				floatVal, err := strconv.ParseFloat(field, 64)
 				if err != nil {
-					// 如果转换失败，返回类型不匹配错误
 					return GoDBError{TypeMismatchError, fmt.Sprintf("LoadFromCSV: couldn't convert value %s to int, tuple %d", field, cnt)}
 				}
-				intValue := int(floatVal)                                // 将浮点数转为整数
-				newFields = append(newFields, IntField{int64(intValue)}) // 将转换后的整数添加到字段列表中
+				intValue := int(floatVal)
+				newFields = append(newFields, IntField{int64(intValue)})
 			case StringType:
-				// 对于字符串类型字段，截取最大允许长度的字符串
 				if len(field) > StringLength {
 					field = field[0:StringLength]
 				}
-				newFields = append(newFields, StringField{field}) // 将字符串字段添加到字段列表中
+				newFields = append(newFields, StringField{field})
 			}
 		}
-
-		// 创建一个新的元组
 		newT := Tuple{*f.Descriptor(), newFields, nil}
-		// 为新元组生成一个唯一的TID（事务ID）
 		tid := NewTID()
-
-		// 获取缓冲池（BufferPool）并开始一个新的事务
 		bp := f.bufPool
 		bp.BeginTransaction(tid)
-
-		// 将元组插入到 HeapFile 中
 		f.insertTuple(&newT, tid)
 
-		// 将脏页（dirty pages）强制写入磁盘，可能是由于事务提交还未实现，所以手动调用
+		// Force dirty pages to disk. CommitTransaction may not be implemented
+		// yet if this is called in lab 1 or 2.
 		bp.FlushAllPages()
 
-		// 频繁提交事务，以避免缓冲池中的所有页都被占满
+		//commit frequently, to avoid all pages in BP being full
+		//todo fix
 		bp.CommitTransaction(tid)
 	}
-	return nil // 所有数据加载完成后，返回nil表示成功
+	return nil
 }
 
 // Read the specified page number from the HeapFile on disk. This method is
@@ -157,10 +145,8 @@ func (f *HeapFile) LoadFromCSV(file *os.File, hasHeader bool, sep string, skipLa
 // the appropriate offset, read the bytes in, and construct a [heapPage] object,
 // using the [heapPage.initFromBuffer] method.
 func (f *HeapFile) readPage(pageNo int) (Page, error) {
-
+	//<strip lab1>
 	file, err := os.OpenFile(f.backingFile, os.O_CREATE|os.O_RDONLY, 0644)
-	// file, err := os.Open(f.backingFile)
-
 	if err != nil {
 		return nil, err
 	}
@@ -179,6 +165,7 @@ func (f *HeapFile) readPage(pageNo int) (Page, error) {
 	}
 	pg.initFromBuffer(bytes.NewBuffer(b))
 	return pg, nil
+	//</strip>
 }
 
 // Add the tuple to the HeapFile. This method should search through pages in the
@@ -195,17 +182,18 @@ func (f *HeapFile) readPage(pageNo int) (Page, error) {
 // add support for concurrent modifications in lab 3.
 //
 // The page the tuple is inserted into should be marked as dirty.
-// TODO: some code goes here: Lock and Unlock
 func (f *HeapFile) insertTuple(t *Tuple, tid TransactionID) error {
-
+	//<strip lab1>
 	var start int
 
+	f.Lock()
 	if f.lastEmptyPage == -1 {
 		start = 0
 	} else {
 		start = f.lastEmptyPage
 	}
 	endPage := f.numPages
+	f.Unlock()
 
 	for p := start; p < endPage; p++ {
 		pg, err := f.bufPool.GetPage(f, p, tid, ReadPerm)
@@ -227,20 +215,25 @@ func (f *HeapFile) insertTuple(t *Tuple, tid TransactionID) error {
 		}
 		if err == nil {
 			heapp.setDirty(tid, true)
+			f.Lock()
 			f.lastEmptyPage = p // this is fine because lastEmptyPage is a hint, not forcing
+			f.Unlock()
 			return nil
 		}
 	}
 
+	f.Lock()
 	//no free slots, create new page
 	heapp, err := newHeapPage(f.td, f.numPages, f)
 	err = f.flushPage(heapp) // flush an empty page to later add to buffer pool, helps maintain dirtiness
 	if err != nil {
+		f.Unlock()
 		return err
 	}
 	f.lastEmptyPage = f.numPages
 	p := f.numPages
 	f.numPages++
+	f.Unlock()
 
 	pg, err := f.bufPool.GetPage(f, p, tid, WritePerm)
 	if err != nil {
@@ -253,9 +246,12 @@ func (f *HeapFile) insertTuple(t *Tuple, tid TransactionID) error {
 	}
 	heapp.setDirty(tid, true)
 
+	f.Lock()
 	f.lastEmptyPage = p
+	f.Unlock()
 
 	return nil
+	//</strip>
 }
 
 // Remove the provided tuple from the HeapFile.
@@ -267,10 +263,8 @@ func (f *HeapFile) insertTuple(t *Tuple, tid TransactionID) error {
 // to identify the heap page and slot within the page that the tuple came from.
 //
 // The page the tuple is deleted from should be marked as dirty.
-// TODO: some code goes here: Lock and Unlock
-
 func (f *HeapFile) deleteTuple(t *Tuple, tid TransactionID) error {
-
+	//<strip lab1>
 	if t.Rid == nil {
 		return GoDBError{TupleNotFoundError, "provided tuple has null rid, cannot delete"}
 	}
@@ -298,11 +292,14 @@ func (f *HeapFile) deleteTuple(t *Tuple, tid TransactionID) error {
 		return err
 	}
 
+	f.Lock()
 	if rid.pageNo < f.lastEmptyPage {
 		f.lastEmptyPage = rid.pageNo
 	}
+	f.Unlock()
 
 	return nil
+	//</strip>
 }
 
 // Method to force the specified page back to the backing file at the
@@ -311,7 +308,8 @@ func (f *HeapFile) deleteTuple(t *Tuple, tid TransactionID) error {
 // disk (e.g., that it is the ith page in the heap file), so you can determine
 // where to write it back.
 func (f *HeapFile) flushPage(p Page) error {
-
+	//<strip lab1>
+	// note that this method is not thread safe
 	file, err := os.OpenFile(f.backingFile, os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return err
@@ -325,13 +323,15 @@ func (f *HeapFile) flushPage(p Page) error {
 	}
 	_, err = file.WriteAt(buf.Bytes(), int64(hp.pageNo*PageSize))
 	return err
+	// </strip>
 }
 
 // [Operator] descriptor method -- return the TupleDesc for this HeapFile
 // Supplied as argument to NewHeapFile.
 func (f *HeapFile) Descriptor() *TupleDesc {
-
+	//<strip lab1>
 	return f.td
+	//</strip>
 
 }
 
@@ -344,7 +344,7 @@ func (f *HeapFile) Descriptor() *TupleDesc {
 // You should esnure that Tuples returned by this method have their Rid object
 // set appropriate so that [deleteTuple] will work (see additional comments there).
 func (f *HeapFile) Iterator(tid TransactionID) (func() (*Tuple, error), error) {
-
+	//<strip lab1>
 	nPages := f.NumPages()
 	pgNo := 0
 	var pgIter func() (*Tuple, error)
@@ -372,6 +372,7 @@ func (f *HeapFile) Iterator(tid TransactionID) (func() (*Tuple, error), error) {
 			}
 		}
 	}, nil
+	//</strip>
 }
 
 // internal strucuture to use as key for a heap page
@@ -385,6 +386,7 @@ type heapHash struct {
 // heapHash struct as the key for a page, although you can use any struct that
 // does not contain a slice or a map that uniquely identifies the page.
 func (f *HeapFile) pageKey(pgNo int) any {
+	//<strip lab1>
 	return heapHash{f.backingFile, pgNo}
-
+	//</strip>
 }

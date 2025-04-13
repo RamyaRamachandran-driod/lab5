@@ -1,5 +1,8 @@
 package godb
 
+import (
+)
+
 type Filter struct {
 	op    BoolOp
 	left  Expr
@@ -14,10 +17,9 @@ func NewFilter(constExpr Expr, op BoolOp, field Expr, child Operator) (*Filter, 
 
 // Return a TupleDescriptor for this filter op.
 func (f *Filter) Descriptor() *TupleDesc {
-	// TODO: some code goes here
+	//<strip lab1|lab2>
 	return f.child.Descriptor()
-	// return nil
-
+	//</strip>
 }
 
 // Filter operator implementation. This function should iterate over the results
@@ -25,7 +27,7 @@ func (f *Filter) Descriptor() *TupleDesc {
 //
 // HINT: you can use [types.evalPred] to compare two values.
 func (f *Filter) Iterator(tid TransactionID) (func() (*Tuple, error), error) {
-	// TODO: some code goes here
+	//<strip lab1|lab2>
 	childIter, err := f.child.Iterator(tid)
 	if err != nil {
 		return nil, err
@@ -54,5 +56,5 @@ func (f *Filter) Iterator(tid TransactionID) (func() (*Tuple, error), error) {
 		}
 		return nil, nil
 	}, err
-	// return nil, fmt.Errorf("filter_op.Iterator not implemented")
+	//</strip>
 }

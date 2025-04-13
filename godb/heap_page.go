@@ -2,7 +2,9 @@ package godb
 
 import (
 	"bytes"
+	//<silentstrip lab1>
 	"encoding/binary"
+	//</silentstrip>
 	"sync"
 )
 
@@ -49,6 +51,7 @@ dirty page, it's OK if tuples are renumbered when they are written back to disk.
 */
 
 type heapPage struct {
+	//<strip lab1>
 	desc     TupleDesc
 	numSlots int32
 	numUsed  int32
@@ -56,40 +59,51 @@ type heapPage struct {
 	tuples   []*Tuple
 	pageNo   int
 	file     *HeapFile
+	//</strip>
+	beforeImage *heapPage
+	dirtier     TransactionID
 	sync.Mutex
 }
 
+// <silentstrip lab1>
+const HeaderSize = 8
+
+// </silentstrip>
 // Construct a new heap page
 func newHeapPage(desc *TupleDesc, pageNo int, f *HeapFile) (*heapPage, error) {
-
+	//<strip lab1>
 	var pg heapPage
 	pg.desc = *desc
-	pg.numSlots = int32((PageSize - 8) / desc.bytesPerTuple())
+	pg.numSlots = int32((PageSize - HeaderSize) / desc.bytesPerTuple())
 	pg.numUsed = 0
 	pg.dirty = false
 	pg.tuples = make([]*Tuple, pg.numSlots)
 	pg.pageNo = pageNo
 	pg.file = f
-
+	pg.dirtier = -1
+	pg.SetBeforeImage()
 	return &pg, nil
+	//</strip>
 }
 
+func (h *heapPage) getNumSlots() int {
+	//<strip lab1>
+	return int(h.numSlots)
+	//</strip>
+}
+
+// <silentstrip lab1>
 func (h *heapPage) getNumEmptySlots() int {
 	return int(h.numSlots - h.numUsed)
 }
 
-func (h *heapPage) getNumSlots() int {
-
-	return int(h.numSlots)
-
-}
-
 var ErrPageFull = GoDBError{PageFullError, "page is full"}
 
+// </silentstrip>
 // Insert the tuple into a free slot on the page, or return an error if there are
 // no free slots.  Set the tuples rid and return it.
 func (h *heapPage) insertTuple(t *Tuple) (recordID, error) {
-
+	//<strip lab1>
 	for i := 0; i < int(h.numSlots); i++ {
 		if h.tuples[i] == nil {
 			h.tuples[i] = t
@@ -99,12 +113,13 @@ func (h *heapPage) insertTuple(t *Tuple) (recordID, error) {
 		}
 	}
 	return 0, ErrPageFull
+	//</strip>
 }
 
 // Delete the tuple at the specified record ID, or return an error if the ID is
 // invalid.
 func (h *heapPage) deleteTuple(rid recordID) error {
-
+	//<strip lab1>
 	heapRid, ok := rid.(heapFileRid)
 	if !ok {
 		return GoDBError{TupleNotFoundError, "supplied rid is not a heapFileRid"}
@@ -119,27 +134,40 @@ func (h *heapPage) deleteTuple(rid recordID) error {
 	h.numUsed--
 	h.tuples[slot] = nil
 	return nil
+	//</strip>
 }
 
 // Page method - return whether or not the page is dirty
 func (h *heapPage) isDirty() bool {
-	// TODO: some code goes here: lock and Unlock
+	//<strip lab1|lab2|lab3|lab4>
+	defer h.Unlock()
+	h.Lock()
+	//</strip>
+	//<strip lab1>
 	return h.dirty
+	//</strip>
 }
 
 // Page method - mark the page as dirty
 func (h *heapPage) setDirty(tid TransactionID, dirty bool) {
-	// TODO: some code goes here: lock and Unlock
+	//<strip lab1|lab2|lab3|lab4>
+	defer h.Unlock()
+	h.Lock()
+	//</strip>
+	//<strip lab1>
 	h.dirty = dirty
-
+	//</strip>
+	if dirty {
+		h.dirtier = tid
+	}
 }
 
 // Page method - return the corresponding HeapFile
 // for this page.
 func (p *heapPage) getFile() DBFile {
-
+	//<strip lab1>
 	return p.file
-
+	//</strip>
 }
 
 // Allocate a new bytes.Buffer and write the heap page to it. Returns an error
@@ -148,6 +176,7 @@ func (p *heapPage) getFile() DBFile {
 // the binary.Write method in LittleEndian order, followed by the tuples of the
 // page, written using the Tuple.writeTo method.
 func (h *heapPage) toBuffer() (*bytes.Buffer, error) {
+	//<strip lab1>
 	b := new(bytes.Buffer)
 
 	err := binary.Write(b, binary.LittleEndian, (int32)(h.numSlots))
@@ -174,11 +203,12 @@ func (h *heapPage) toBuffer() (*bytes.Buffer, error) {
 	b.Write(make([]byte, PageSize-b.Len())) // pad to page size
 
 	return b, nil
+	//</strip>
 }
 
 // Read the contents of the HeapPage from the supplied buffer.
 func (h *heapPage) initFromBuffer(buf *bytes.Buffer) error {
-
+	//<strip lab1>
 	var numSlotsHeader, numUsedHeader int32
 	err := binary.Read(buf, binary.LittleEndian, &numSlotsHeader)
 	if err != nil {
@@ -201,15 +231,16 @@ func (h *heapPage) initFromBuffer(buf *bytes.Buffer) error {
 	h.numUsed = numUsedHeader
 	h.dirty = false
 	h.tuples = tups
-
+	h.SetBeforeImage()
 	return nil
+	//</strip>
 }
 
 // Return a function that iterates through the tuples of the heap page.  Be sure
 // to set the rid of the tuple to the rid struct of your choosing beforing
 // return it. Return nil, nil when the last tuple is reached.
 func (p *heapPage) tupleIter() func() (*Tuple, error) {
-
+	//<strip lab1>
 	i := 0
 	return func() (*Tuple, error) {
 		for {
@@ -223,4 +254,5 @@ func (p *heapPage) tupleIter() func() (*Tuple, error) {
 			}
 		}
 	}
+	//</strip>
 }

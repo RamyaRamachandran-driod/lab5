@@ -5,10 +5,10 @@ type Project struct {
 	outputNames  []string
 	child        Operator
 	//add additional fields here
-	// TODO: some code goes here
-
+	//<strip lab1|lab2>
 	outDesc  TupleDesc
 	distinct bool
+	//</strip>
 }
 
 // Construct a projection operator. It saves the list of selected field, child,
@@ -18,7 +18,8 @@ type Project struct {
 // distinct is for noting whether the projection reports only distinct results,
 // and child is the child operator.
 func NewProjectOp(selectFields []Expr, outputNames []string, distinct bool, child Operator) (Operator, error) {
-	// TODO: some code goes here
+	//<strip lab1|lab2>
+	//output descriptor can have different names for fields that are selected
 	if len(selectFields) != len(outputNames) {
 		return nil, GoDBError{IncompatibleTypesError, "output name list must have same number of fields as input list"}
 	}
@@ -29,8 +30,7 @@ func NewProjectOp(selectFields []Expr, outputNames []string, distinct bool, chil
 		outFields[i].Fname = outputNames[i]
 	}
 	return &Project{selectFields, outputNames, child, TupleDesc{outFields}, distinct}, nil
-
-	// return nil, nil
+	//</strip>
 }
 
 // Return a TupleDescriptor for this projection. The returned descriptor should
@@ -39,10 +39,9 @@ func NewProjectOp(selectFields []Expr, outputNames []string, distinct bool, chil
 //
 // HINT: you can use expr.GetExprType() to get the field type
 func (p *Project) Descriptor() *TupleDesc {
-	// TODO: some code goes here
+	//<strip lab1|lab2>
 	return &p.outDesc
-
-	// return nil
+	//</strip>
 
 }
 
@@ -53,7 +52,7 @@ func (p *Project) Descriptor() *TupleDesc {
 // distinct tuples seen so far. Note that support for the distinct keyword is
 // optional as specified in the lab 2 assignment.
 func (p *Project) Iterator(tid TransactionID) (func() (*Tuple, error), error) {
-	// TODO: some code goes here
+	// //<strip lab1|lab2|lab3>
 	childIter, err := p.child.Iterator(tid)
 	if err != nil {
 		return nil, err
@@ -108,5 +107,5 @@ func (p *Project) Iterator(tid TransactionID) (func() (*Tuple, error), error) {
 		curDistinct++
 		return tup, nil
 	}, nil
-	// return nil, fmt.Errorf("project_op.Iterator not implemented")
+	//</strip>
 }

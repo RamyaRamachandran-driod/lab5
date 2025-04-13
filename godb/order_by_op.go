@@ -1,25 +1,36 @@
 package godb
 
-import "sort"
+import (
+	//<silentstrip lab2>
+	"sort"
+	//</silentstrip>
+)
 
 type OrderBy struct {
 	orderBy []Expr // OrderBy should include these two fields (used by parser)
 	child   Operator
-	// TODO: some code goes here
 	//add additional fields here
+	//<silentstrip lab1|lab2>
 	ascending []bool
+	//</silentstrip>
 }
 
+// <silentstrip lab1|lab2>
+type TupSortState struct {
+	op       *OrderBy
+	tupArray []*Tuple
+}
+
+//</silentstrip>
 // Construct an order by operator. Saves the list of field, child, and ascending
 // values for use in the Iterator() method. Here, orderByFields is a list of
 // expressions that can be extracted from the child operator's tuples, and the
 // ascending bitmap indicates whether the ith field in the orderByFields list
 // should be in ascending (true) or descending (false) order.
 func NewOrderBy(orderByFields []Expr, child Operator, ascending []bool) (*OrderBy, error) {
-	// TODO: some code goes here
+	//<strip lab1|lab2>
 	return &OrderBy{orderByFields, child, ascending}, nil
-
-	// return nil, nil //replace me
+	//</strip>
 
 }
 
@@ -28,21 +39,15 @@ func NewOrderBy(orderByFields []Expr, child Operator, ascending []bool) (*OrderB
 // Note that the order by just changes the order of the child tuples, not the
 // fields that are emitted.
 func (o *OrderBy) Descriptor() *TupleDesc {
-	// TODO: some code goes here
+	//<strip lab1|lab2>
 	return o.child.Descriptor()
-
-	// return nil
+	//</strip>
 }
 
-type TupSortState struct {
-	op       *OrderBy
-	tupArray []*Tuple
-}
-
+// <silentstrip lab1|lab2>
 func (ts TupSortState) Len() int {
 	return len(ts.tupArray)
 }
-
 func (ts TupSortState) Swap(i, j int) {
 	ts.tupArray[i], ts.tupArray[j] = ts.tupArray[j], ts.tupArray[i]
 }
@@ -62,6 +67,7 @@ func (ts TupSortState) Less(i, j int) bool {
 	return false
 }
 
+//</silentstrip>
 // Return a function that iterates through the results of the child iterator in
 // ascending/descending order, as specified in the constructor.  This sort is
 // "blocking" -- it should first construct an in-memory sorted list of results
@@ -75,7 +81,7 @@ func (ts TupSortState) Less(i, j int) bool {
 // example, example of SortMultiKeys, and documentation at:
 // https://pkg.go.dev/sort
 func (o *OrderBy) Iterator(tid TransactionID) (func() (*Tuple, error), error) {
-	// TODO: some code goes here
+	//<strip lab1|lab2>
 	var tups []*Tuple
 	childIter, err := o.child.Iterator(tid)
 	if err != nil {
@@ -103,5 +109,5 @@ func (o *OrderBy) Iterator(tid TransactionID) (func() (*Tuple, error), error) {
 			return nil, nil
 		}
 	}, nil
-	// return nil, fmt.Errorf("order_by_op.Iterator not implemented") //replace me
+	// </strip>
 }
