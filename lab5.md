@@ -1,9 +1,9 @@
 
 # Lab 5: GoDB Recovery
 
-**Assigned:**  Tuesday December 5, 2024
+**Assigned:**  Monday April 14, 2025
 
-**Due:**  Tuesday November 19, 2024 by 11:59 PM
+**Due:**  Thursday April 24, 2025 by 11:59 PM
 
 
 ## 1. Getting started
@@ -18,7 +18,7 @@ To start Lab 4, there are two methods:
 
 2. Inside this directory, clone the repository by running the following command:
    ```
-   git clone https://github.com/UA-DB-Class/go-db-lab-2024-fall.git
+   git clone https://github.com/UA-DB-Class/go-db-lab-2025-spring.git
    ```
 
    The `godb` folder contains all the files you need for lab 5, including both the solution to lab 1, lab 2, lab3 and lab4.
@@ -30,7 +30,7 @@ To start Lab 4, there are two methods:
 2. Inside this directory, clone the repository by running the following command:
 
    ```
-   git clone https://github.com/UA-DB-Class/go-db-lab-2024-fall.git
+   git clone https://github.com/UA-DB-Class/go-db-lab-2025-spring.git
    ```
 
    The `godb` folder contains all the files you need for lab 4, including both the solution to lab 1, lab 2, lab3 and lab4.
