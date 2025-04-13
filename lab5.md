@@ -8,9 +8,9 @@
 
 ## 1. Getting started
 
-### 1.1. Getting Lab 4
+### 1.1. Getting Lab 5
 
-To start Lab 4, there are two methods:
+To start Lab 5, there are two methods:
 
 #### The first method-using the standard solution to the previous labs:
 
