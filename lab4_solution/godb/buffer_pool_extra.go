@@ -43,7 +43,6 @@ func (bp *BufferPool) Rollback(tid TransactionID) error {
 
 // Returns the log file associated with the buffer pool.
 func (bp *BufferPool) LogFile() *LogFile {
-
 	return bp.logFile
 
 }
